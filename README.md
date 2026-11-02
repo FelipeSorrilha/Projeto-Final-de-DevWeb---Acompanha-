@@ -25,6 +25,13 @@ A ideia é o professor registrar observações e resultados por habilidade (ex.:
 2. sugerir quais conteúdos retomar e com quem;
 3. propor uma atividade de intervenção curta para o grupo que precisa.
 
-
 ---
 
+## Stack
+
+
+- **Frontend: Next.js + Tailwind CSS.** O Next.js organiza o projeto em páginas e componentes, o que ajuda a reaproveitar partes da interface. O Tailwind deixa estilizar direto no componente, sem ficar alternando entre arquivos de CSS.
+- **Backend: Python + FastAPI** *(Sprint 2)*. O FastAPI é leve, combina bem com o escopo pequeno do projeto e gera a documentação da API em `/docs` automaticamente. Python também facilita a integração com a IA.
+- **Banco de dados: SQLModel** *(Sprint 4)*. Permite descrever as tabelas com classes Python e conversa direto com o FastAPI.
+- **Autenticação: JWT** *(Sprint 3)*. Cada professor faz login e só acessa as informações das suas próprias turmas, já que os dados dos alunos são sensíveis.
+- **IA: [ainda não definida]** *(Sprint 2)*. Vai ser usada para resumir as dificuldades de cada aluno e sugerir retomadas. 
