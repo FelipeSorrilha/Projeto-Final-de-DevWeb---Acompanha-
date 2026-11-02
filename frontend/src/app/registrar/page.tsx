@@ -39,12 +39,12 @@ function RegistrarTurma() {
   const [sucesso, setSucesso] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
-  function atualizar(alunoId: number, mudanca: Partial<Linha>) {
-    setLinhas((atual) => ({
-      ...atual,
-      [alunoId]: { nivel: "", observacao: "", ...atual[alunoId], ...mudanca },
-    }));
-  }
+function atualizar(alunoId: number, mudanca: Partial<Linha>) {
+  setLinhas((atual) => {
+    const anterior: Linha = atual[alunoId] ?? { nivel: "", observacao: "" };
+    return { ...atual, [alunoId]: { ...anterior, ...mudanca } };
+  });
+}
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
