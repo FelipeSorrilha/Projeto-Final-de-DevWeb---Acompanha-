@@ -11,7 +11,7 @@ export const alunosMock: Aluno[] = [
     { id: 3, nome: "Carla Mendes", turmaId: 1 },
     { id: 4, nome: "Davi Oliveira", turmaId: 1 },
     { id: 5, nome: "Eduarda Ferreira", turmaId: 2 },
-    { id: 6, nome: "Felipe Rocha", turmaId: 2 },
+    { id: 6, nome: "Felipe Ferrer", turmaId: 2 },
     { id: 7, nome: "Gabriela Santos", turmaId: 2 },
     { id: 8, nome: "Heitor Almeida", turmaId: 2 },
 ];

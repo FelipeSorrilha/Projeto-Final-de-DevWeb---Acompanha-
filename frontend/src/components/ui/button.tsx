@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes } from "react";
+//oiiii
 
 type Variante = "primario" | "secundario" | "perigo";
 
@@ -31,3 +32,4 @@ export default function Button({
     </button>
     );
 }
+
