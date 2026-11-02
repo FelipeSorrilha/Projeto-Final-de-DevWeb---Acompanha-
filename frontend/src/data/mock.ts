@@ -10,10 +10,13 @@ export const alunosMock: Aluno[] = [
     { id: 2, nome: "Bruno Lima", turmaId: 1 },
     { id: 3, nome: "Carla Mendes", turmaId: 1 },
     { id: 4, nome: "Davi Oliveira", turmaId: 1 },
-    { id: 5, nome: "Eduarda Ferreira", turmaId: 2 },
-    { id: 6, nome: "Felipe Ferrer", turmaId: 2 },
-    { id: 7, nome: "Gabriela Santos", turmaId: 2 },
-    { id: 8, nome: "Heitor Almeida", turmaId: 2 },
+    { id: 5, nome: "Patrick Jane", turmaId: 1 },
+    { id: 6, nome: "Eduarda Ferreira", turmaId: 2 },
+    { id: 7, nome: "Felipe Ferrer", turmaId: 1 },
+    { id: 8, nome: "Gabriela Santos", turmaId: 2 },
+    { id: 9, nome: "Heloisa Felipetto", turmaId: 2 },
+    { id: 10, nome: "Millena Sartori", turmaId: 2 }, 
+    { id: 11, nome: "Grace Van Pelt", turmaId: 2 }
 ];
 
 export const habilidadesMock: Habilidade[] = [
