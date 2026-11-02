@@ -16,7 +16,7 @@ Em turmas com diferentes níveis de conhecimento, é difícil para o professor s
 
 ## Links
 
-- Site (versão estática): [ainda não tem deploy]
+- Site (versão estática): https://acompanha-plus-nine.vercel.app
 - Repositório: https://github.com/FelipeSorrilha/Projeto-Final-de-DevWeb---Acompanha-
 
 ## Status
