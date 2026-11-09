@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:3000"
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.8-flash"
 
 
 settings = Settings()
