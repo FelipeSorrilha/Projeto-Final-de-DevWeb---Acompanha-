@@ -16,3 +16,13 @@ python -m uvicorn app.main:app --reload
 ```
 
 Documentação em http://127.0.0.1:8000/docs
+
+---
+
+## Render
+
+Acesse a API hospedada pelo link: https://projeto-final-de-devweb-acompanha-backend.onrender.com
+
+Adicione /saude no final para verificar a disponibilidade da IA.
+
+Adicione /docs no final para verificar os endpoints.
