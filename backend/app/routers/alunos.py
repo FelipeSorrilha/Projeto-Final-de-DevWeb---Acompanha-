@@ -7,6 +7,8 @@ from app.schemas.sugestao import SugestaoIA
 from app.services import ia
 from app.services.registros import registros_atuais
 
+from app.routers.ia_erros import tratar_erros_ia
+
 router = APIRouter(prefix="/alunos", tags=["Alunos"])
 
 
@@ -78,7 +80,7 @@ def gerar_sugestao_ia(aluno_id: int):
         )
 
     try:
-        return ia.gerar_sugestao(linhas)
+        return tratar_erros_ia(lambda: ia.gerar_sugestao(linhas))
     except ia.IAIndisponivel:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "IA não configurada")
     except ia.IASobrecarregada:
