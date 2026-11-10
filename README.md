@@ -18,26 +18,14 @@ Em turmas com diferentes níveis de conhecimento, é difícil para o professor s
 
 - Site (versão estática): https://acompanha-plus-nine.vercel.app
 - Repositório: https://github.com/FelipeSorrilha/Projeto-Final-de-DevWeb---Acompanha-
+- Site (API hospedada): https://projeto-final-de-devweb-acompanha-backend.onrender.com/docs
 
 ## Status
 
 - [x] Sprint 1: frontend com dados mockados
-- [ ] Sprint 2: API FastAPI e funcionalidade de IA
+- [x] Sprint 2: API FastAPI e funcionalidade de IA
 - [ ] Sprint 3: integração frontend-API e login com JWT
 - [ ] Sprint 4: banco de dados e manual do usuário
-
-## Funcionalidades (Sprint 1)
-
-- Login (visual, sem validação real nesta sprint)
-- Cadastro de turmas
-- Cadastro, edição e remoção de alunos
-- Registro de uma habilidade para a turma inteira, com nível e observação por aluno
-- Histórico de registros por aluno, com atualização de nível, edição e exclusão
-- Sugestão da IA (simulada nesta sprint, já baseada nos registros do aluno)
-
-> Os dados são mockados e ficam apenas na memória: ao recarregar a página, voltam ao estado inicial.
-
----
 
 ## O problema
 
@@ -113,4 +101,4 @@ O resultado fica em `frontend/out/`.
 
 ### Backend
 
-Será adicionado na Sprint 2.
+Está na pasta Backend.
