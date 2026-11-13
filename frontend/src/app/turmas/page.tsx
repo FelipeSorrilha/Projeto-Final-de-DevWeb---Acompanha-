@@ -8,6 +8,7 @@ import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
 import Card from "../../components/ui/caixinha";
 import Alerta from "../../components/ui/alerta";
+import { sair } from "../../services/auth";
 
 export default function Turmas() {
   const router = useRouter();
@@ -44,6 +45,14 @@ export default function Turmas() {
     <main className="mx-auto w-full max-w-4xl p-6">
       <div className="flex w-full items-center justify-between">
         <h1 className="text-2xl font-bold">Minhas turmas</h1>
+        <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
+      </div>
+
+
+      <div className="flex gap-2">
+        <Button variante="secundario" onClick={() => { sair(); router.push("/"); }}>
+          Sair
+        </Button>
         <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
       </div>
 

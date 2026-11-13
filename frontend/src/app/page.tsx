@@ -6,6 +6,8 @@ import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import Card from "../components/ui/caixinha";
 import Alerta from "../components/ui/alerta";
+import { login } from "../services/auth";
+import { ApiError } from "../services/api";
 
 export default function Landing() {
   const router = useRouter();
@@ -13,16 +15,25 @@ export default function Landing() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
 
-  function entrar(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim() || !senha.trim()) {
-      setErro(true);
-      return;
-    }
-    setCarregando(true);
-    setTimeout(() => router.push("/turmas"), 800);
+async function entrar(e: React.FormEvent) {
+  e.preventDefault();
+  if (!email.trim() || !senha.trim()) {
+    setMensagemErro("Preencha e-mail e senha");
+    setErro(true);
+    return;
   }
+  setCarregando(true);
+  try {
+    await login(email.trim(), senha);
+    router.push("/turmas");
+  } catch (e) {
+    setMensagemErro(e instanceof ApiError ? e.message : "Erro inesperado ao entrar");
+    setErro(true);
+    setCarregando(false);
+  }
+}
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
@@ -52,15 +63,20 @@ export default function Landing() {
           <Button type="submit" carregando={carregando}>
             Entrar
           </Button>
+          {carregando && (
+            <p className="text-sm text-gray-500">
+              Conectando ao servidor... a primeira vez pode levar até 1 minuto.
+            </p>
+          )}
         </form>
       </Card>
 
-      <Alerta
-        tipo="erro"
-        mensagem="Preencha e-mail e senha"
-        visivel={erro}
-        onFechar={() => setErro(false)}
-      />
+    <Alerta
+      tipo="erro"
+      mensagem={mensagemErro}
+      visivel={erro}
+      onFechar={() => setErro(false)}
+    />
     </main>
   );
 }
