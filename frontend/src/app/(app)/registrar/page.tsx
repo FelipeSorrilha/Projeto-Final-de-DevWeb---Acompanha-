@@ -2,14 +2,14 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTurmas } from "../../context/TurmasContext";
-import { useAlunos } from "../../context/AlunosContext";
-import { useRegistros } from "../../context/RegistrosContext";
-import { habilidadesMock } from "../../data/mock";
-import { Nivel } from "../../types";
-import Button from "../../components/ui/button";
-import Card from "../../components/ui/caixinha";
-import Alerta from "../../components/ui/alerta";
+import { useTurmas } from "../../../context/TurmasContext";
+import { useAlunos } from "../../../context/AlunosContext";
+import { useRegistros } from "../../../context/RegistrosContext";
+import { habilidadesMock } from "../../../data/mock";
+import { Nivel } from "../../../types";
+import Button from "../../../components/ui/button";
+import Card from "../../../components/ui/caixinha";
+import Alerta from "../../../components/ui/alerta";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 

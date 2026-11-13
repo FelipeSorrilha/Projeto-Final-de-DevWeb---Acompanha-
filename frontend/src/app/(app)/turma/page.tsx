@@ -2,16 +2,16 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTurmas } from "../../context/TurmasContext";
-import { useAlunos } from "../../context/AlunosContext";
-import { useRegistros } from "../../context/RegistrosContext";
-import { Aluno, Nivel } from "../../types";
-import Button from "../../components/ui/button";
-import Input from "../../components/ui/input";
-import Card from "../../components/ui/caixinha";
-import Badge from "../../components/ui/badge";
-import Alerta from "../../components/ui/alerta";
-import { registrosAtuais } from "../../utils/registros";
+import { useTurmas } from "../../../context/TurmasContext";
+import { useAlunos } from "../../../context/AlunosContext";
+import { useRegistros } from "../../../context/RegistrosContext";
+import { Aluno, Nivel } from "../../../types";
+import Button from "../../../components/ui/button";
+import Input from "../../../components/ui/input";
+import Card from "../../../components/ui/caixinha";
+import Badge from "../../../components/ui/badge";
+import Alerta from "../../../components/ui/alerta";
+import { registrosAtuais } from "../../../utils/registros";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 

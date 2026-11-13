@@ -1,47 +1,61 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { Registro } from "../types";
-import { registrosMock } from "../data/mock";
+import { useLista } from "../hooks/useLista";
+import * as servico from "../services/registros";
 
 interface RegistrosContextType {
-    registros: Registro[];
-    adicionarRegistros: (novos: Omit<Registro, "id">[]) => void;
-    editarRegistro: (id: number, mudanca: Partial<Omit<Registro, "id">>) => void;
-    removerRegistro: (id: number) => void;
+  registros: Registro[];
+  carregando: boolean;
+  erro: string;
+  recarregar: () => Promise<void>;
+  adicionarRegistros: (novos: Omit<Registro, "id">[]) => Promise<void>;
+  editarRegistro: (id: number, mudanca: Partial<Omit<Registro, "id">>) => Promise<void>;
+  removerRegistro: (id: number) => Promise<void>;
 }
 
 const RegistrosContext = createContext<RegistrosContextType | null>(null);
 
 export function RegistrosProvider({ children }: { children: ReactNode }) {
-    const [registros, setRegistros] = useState<Registro[]>(registrosMock);
+  const { itens: registros, setItens, carregando, erro, recarregar } = useLista(
+    servico.listarRegistros
+  );
 
-    function adicionarRegistros(novos: Omit<Registro, "id">[]) {
-    setRegistros((atual) => {
-        let proximoId = atual.length > 0 ? Math.max(...atual.map((r) => r.id)) + 1 : 1;
-        return [...atual, ...novos.map((r) => ({ ...r, id: proximoId++ }))];
-    });
-    }
+  async function adicionarRegistros(novos: Omit<Registro, "id">[]) {
+    const criados = await servico.criarRegistros(novos);
+    setItens((atual) => [...atual, ...criados]);
+  }
 
-    function editarRegistro(id: number, mudanca: Partial<Omit<Registro, "id">>) {
-        setRegistros((atual) => atual.map((r) => (r.id === id ? { ...r, ...mudanca } : r)));
-    }
+  async function editarRegistro(id: number, mudanca: Partial<Omit<Registro, "id">>) {
+    const atualizado = await servico.editarRegistro(id, mudanca);
+    setItens((atual) => atual.map((r) => (r.id === id ? atualizado : r)));
+  }
 
-    function removerRegistro(id: number) {
-        setRegistros((atual) => atual.filter((r) => r.id !== id));
-    }
+  async function removerRegistro(id: number) {
+    await servico.removerRegistro(id);
+    setItens((atual) => atual.filter((r) => r.id !== id));
+  }
 
-    return (
+  return (
     <RegistrosContext.Provider
-        value={{ registros, adicionarRegistros, editarRegistro, removerRegistro }}
+      value={{
+        registros,
+        carregando,
+        erro,
+        recarregar,
+        adicionarRegistros,
+        editarRegistro,
+        removerRegistro,
+      }}
     >
-        {children}
+      {children}
     </RegistrosContext.Provider>
-    );
+  );
 }
 
 export function useRegistros() {
-    const contexto = useContext(RegistrosContext);
-    if (!contexto) throw new Error("useRegistros deve ser usado dentro de RegistrosProvider");
-    return contexto;
+  const contexto = useContext(RegistrosContext);
+  if (!contexto) throw new Error("useRegistros deve ser usado dentro de RegistrosProvider");
+  return contexto;
 }

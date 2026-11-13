@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTurmas } from "../../context/TurmasContext";
-import { useAlunos } from "../../context/AlunosContext";
-import Button from "../../components/ui/button";
-import Input from "../../components/ui/input";
-import Card from "../../components/ui/caixinha";
-import Alerta from "../../components/ui/alerta";
-import { sair } from "../../services/auth";
+import { useTurmas } from "../../../context/TurmasContext";
+import { useAlunos } from "../../../context/AlunosContext";
+import Button from "../../../components/ui/button";
+import Input from "../../../components/ui/input";
+import Card from "../../../components/ui/caixinha";
+import Alerta from "../../../components/ui/alerta";
+import { sair } from "../../../services/auth";
 
 export default function Turmas() {
   const router = useRouter();

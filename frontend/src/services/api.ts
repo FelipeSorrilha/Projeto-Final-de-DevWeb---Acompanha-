@@ -68,3 +68,7 @@ export async function api<T>(caminho: string, opcoes: RequestInit = {}): Promise
   if (resposta.status === 204) return undefined as T;
   return resposta.json() as Promise<T>;
 }
+
+export function mensagemDeErro(e: unknown): string {
+  return e instanceof ApiError ? e.message : "Ocorreu um erro inesperado.";
+}

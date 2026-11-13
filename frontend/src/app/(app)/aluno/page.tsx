@@ -2,16 +2,16 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTurmas } from "../../context/TurmasContext";
-import { useAlunos } from "../../context/AlunosContext";
-import { useRegistros } from "../../context/RegistrosContext";
-import { habilidadesMock } from "../../data/mock";
-import { Nivel, Registro, SugestaoIA } from "../../types";
-import { registrosAtuais } from "../../utils/registros";
-import Button from "../../components/ui/button";
-import Input from "../../components/ui/input";
-import Card from "../../components/ui/caixinha";
-import Badge from "../../components/ui/badge";
+import { useTurmas } from "../../../context/TurmasContext";
+import { useAlunos } from "../../../context/AlunosContext";
+import { useRegistros } from "../../../context/RegistrosContext";
+import { habilidadesMock } from "../../../data/mock";
+import { Nivel, Registro, SugestaoIA } from "../../../types";
+import { registrosAtuais } from "../../../utils/registros";
+import Button from "../../../components/ui/button";
+import Input from "../../../components/ui/input";
+import Card from "../../../components/ui/caixinha";
+import Badge from "../../../components/ui/badge";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 

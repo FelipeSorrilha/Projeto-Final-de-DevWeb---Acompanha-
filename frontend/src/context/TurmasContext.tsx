@@ -1,33 +1,37 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { Turma } from "../types";
-import { turmasMock } from "../data/mock";
+import { useLista } from "../hooks/useLista";
+import { criarTurma, listarTurmas } from "../services/turmas";
 
 interface TurmasContextType {
-    turmas: Turma[];
-    adicionarTurma: (nome: string, serie: string) => void;
+  turmas: Turma[];
+  carregando: boolean;
+  erro: string;
+  recarregar: () => Promise<void>;
+  adicionarTurma: (nome: string, serie: string) => Promise<void>;
 }
 
 const TurmasContext = createContext<TurmasContextType | null>(null);
 
 export function TurmasProvider({ children }: { children: ReactNode }) {
-    const [turmas, setTurmas] = useState<Turma[]>(turmasMock);
+  const { itens: turmas, setItens, carregando, erro, recarregar } = useLista(listarTurmas);
 
-    function adicionarTurma(nome: string, serie: string) {
-    const novoId = turmas.length > 0 ? Math.max(...turmas.map((t) => t.id)) + 1 : 1;
-    setTurmas([...turmas, { id: novoId, nome, serie }]);
-    }
+  async function adicionarTurma(nome: string, serie: string) {
+    const nova = await criarTurma({ nome, serie });
+    setItens((atual) => [...atual, nova]);
+  }
 
-    return (
-    <TurmasContext.Provider value={{ turmas, adicionarTurma }}>
-        {children}
+  return (
+    <TurmasContext.Provider value={{ turmas, carregando, erro, recarregar, adicionarTurma }}>
+      {children}
     </TurmasContext.Provider>
-    );
+  );
 }
 
 export function useTurmas() {
-    const contexto = useContext(TurmasContext);
-    if (!contexto) throw new Error("useTurmas deve ser usado dentro de TurmasProvider");
-    return contexto;
+  const contexto = useContext(TurmasContext);
+  if (!contexto) throw new Error("useTurmas deve ser usado dentro de TurmasProvider");
+  return contexto;
 }
