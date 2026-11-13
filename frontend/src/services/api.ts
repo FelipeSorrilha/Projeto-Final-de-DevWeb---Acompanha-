@@ -29,6 +29,13 @@ export function removerToken() {
   }
 }
 
+export function mensagemDeErro(e: unknown): string {
+  return e instanceof ApiError ? e.message : "Ocorreu um erro inesperado.";
+}
+
+// evita que várias requisições simultâneas disparem vários redirecionamentos
+let redirecionando = false;
+
 export async function api<T>(caminho: string, opcoes: RequestInit = {}): Promise<T> {
   if (!API_URL) {
     throw new ApiError(0, "URL da API não configurada.");
@@ -46,10 +53,13 @@ export async function api<T>(caminho: string, opcoes: RequestInit = {}): Promise
     throw new ApiError(0, "Não foi possível conectar ao servidor. Tente novamente.");
   }
 
-  // token ausente, inválido ou expirado: volta para o login
+  // token ausente, inválido ou expirado: volta para o login (uma vez só)
   if (resposta.status === 401 && caminho !== "/auth/login") {
     removerToken();
-    window.location.href = "/";
+    if (!redirecionando && window.location.pathname !== "/") {
+      redirecionando = true;
+      window.location.href = "/";
+    }
     throw new ApiError(401, "Sessão expirada. Faça login novamente.");
   }
 
@@ -67,8 +77,4 @@ export async function api<T>(caminho: string, opcoes: RequestInit = {}): Promise
 
   if (resposta.status === 204) return undefined as T;
   return resposta.json() as Promise<T>;
-}
-
-export function mensagemDeErro(e: unknown): string {
-  return e instanceof ApiError ? e.message : "Ocorreu um erro inesperado.";
 }
