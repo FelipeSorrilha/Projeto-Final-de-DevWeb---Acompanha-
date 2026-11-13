@@ -14,26 +14,26 @@ export default function Landing() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(false);
-  const [carregando, setCarregando] = useState(false);
   const [mensagemErro, setMensagemErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-async function entrar(e: React.FormEvent) {
-  e.preventDefault();
-  if (!email.trim() || !senha.trim()) {
-    setMensagemErro("Preencha e-mail e senha");
-    setErro(true);
-    return;
+  async function entrar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !senha.trim()) {
+      setMensagemErro("Preencha e-mail e senha");
+      setErro(true);
+      return;
+    }
+    setCarregando(true);
+    try {
+      await login(email.trim(), senha);
+      router.push("/turmas");
+    } catch (e) {
+      setMensagemErro(e instanceof ApiError ? e.message : "Erro inesperado ao entrar");
+      setErro(true);
+      setCarregando(false);
+    }
   }
-  setCarregando(true);
-  try {
-    await login(email.trim(), senha);
-    router.push("/turmas");
-  } catch (e) {
-    setMensagemErro(e instanceof ApiError ? e.message : "Erro inesperado ao entrar");
-    setErro(true);
-    setCarregando(false);
-  }
-}
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
@@ -71,12 +71,12 @@ async function entrar(e: React.FormEvent) {
         </form>
       </Card>
 
-    <Alerta
-      tipo="erro"
-      mensagem={mensagemErro}
-      visivel={erro}
-      onFechar={() => setErro(false)}
-    />
+      <Alerta
+        tipo="erro"
+        mensagem={mensagemErro}
+        visivel={erro}
+        onFechar={() => setErro(false)}
+      />
     </main>
   );
 }
