@@ -2,6 +2,8 @@ from app.schemas.aluno import Aluno
 from app.schemas.habilidade import Habilidade
 from app.schemas.registro import Registro
 from app.schemas.turma import Turma
+from app.auth.senhas import gerar_hash
+from app.schemas.auth import ProfessorBD
 
 turmas: list[Turma] = [
     Turma(id=1, nome="6º Ano A", serie="6º ano"),
@@ -50,6 +52,15 @@ _registros = [
 registros: list[Registro] = [
     Registro(id=i, aluno_id=a, habilidade_id=h, observacao=o, nivel=n, data=d)
     for (i, a, h, o, n, d) in _registros
+]
+
+professores: list[ProfessorBD] = [
+    ProfessorBD(
+        id=1,
+        nome="Professor Demo",
+        email="professor@acompanha.com",
+        senha_hash=gerar_hash("demo1234"),
+    ),
 ]
 
 
