@@ -1,131 +1,103 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTurmas } from "../../../context/TurmasContext";
 import { useAlunos } from "../../../context/AlunosContext";
-import { useRegistros } from "../../../context/RegistrosContext";
-import { Aluno, Nivel } from "../../../types";
+import { sair } from "../../../services/auth";
+import { mensagemDeErro } from "../../../services/api";
 import Button from "../../../components/ui/button";
 import Input from "../../../components/ui/input";
 import Card from "../../../components/ui/caixinha";
-import Badge from "../../../components/ui/badge";
-import Alerta from "../../../components/ui/alerta";
-import { registrosAtuais } from "../../../utils/registros";
+import Alerta, { TipoAlerta } from "../../../components/ui/alerta";
 
-const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
-
-function ListaAlunos() {
+export default function Turmas() {
   const router = useRouter();
-  const params = useSearchParams();
-  const { turmas } = useTurmas();
-  const { alunos: todosAlunos, adicionarAluno, editarAluno, removerAluno } = useAlunos();
+  const { turmas, carregando, erro, recarregar, adicionarTurma } = useTurmas();
+  const { alunos } = useAlunos();
 
-  const { registros: todosRegistros } = useRegistros();
   const [formAberto, setFormAberto] = useState(false);
-  const [editandoId, setEditandoId] = useState<number | null>(null);
   const [nome, setNome] = useState("");
+  const [serie, setSerie] = useState("");
   const [erroNome, setErroNome] = useState("");
-  const [mensagem, setMensagem] = useState("");
+  const [erroSerie, setErroSerie] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
   const [alertaVisivel, setAlertaVisivel] = useState(false);
+  const [alertaTipo, setAlertaTipo] = useState<TipoAlerta>("sucesso");
+  const [alertaMensagem, setAlertaMensagem] = useState("");
 
-  const id = Number(params.get("id"));
-  const turma = turmas.find((t) => t.id === id);
-  const alunos = todosAlunos.filter((a) => a.turmaId === id);
-
-  function avisar(texto: string) {
-    setMensagem(texto);
+  function avisar(tipo: TipoAlerta, mensagem: string) {
+    setAlertaTipo(tipo);
+    setAlertaMensagem(mensagem);
     setAlertaVisivel(true);
-  }
-
-  function abrirNovo() {
-    setEditandoId(null);
-    setNome("");
-    setErroNome("");
-    setFormAberto(true);
-  }
-
-  function abrirEdicao(aluno: Aluno) {
-    setEditandoId(aluno.id);
-    setNome(aluno.nome);
-    setErroNome("");
-    setFormAberto(true);
   }
 
   function fecharForm() {
     setFormAberto(false);
-    setEditandoId(null);
     setNome("");
+    setSerie("");
     setErroNome("");
+    setErroSerie("");
   }
 
-  function salvar(e: React.FormEvent) {
+  async function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!nome.trim()) {
-      setErroNome("Informe o nome do aluno");
-      return;
-    }
-    if (editandoId !== null) {
-      editarAluno(editandoId, nome.trim());
-      avisar("Aluno atualizado!");
-    } else {
-      adicionarAluno(nome.trim(), id);
-      avisar("Aluno adicionado!");
-    }
-    fecharForm();
-  }
+    setErroNome(nome.trim() ? "" : "Informe o nome da turma");
+    setErroSerie(serie.trim() ? "" : "Informe a série");
+    if (!nome.trim() || !serie.trim()) return;
 
-  function remover(aluno: Aluno) {
-    if (window.confirm(`Remover ${aluno.nome} da turma?`)) {
-      removerAluno(aluno.id);
-      avisar("Aluno removido.");
+    setSalvando(true);
+    try {
+      await adicionarTurma(nome.trim(), serie.trim());
+      fecharForm();
+      avisar("sucesso", "Turma criada com sucesso!");
+    } catch (e) {
+      avisar("erro", mensagemDeErro(e));
+    } finally {
+      setSalvando(false);
     }
-  }
-
-  if (!turma) {
-    return (
-      <main className="mx-auto w-full max-w-4xl p-6">
-        <p className="text-gray-700">Turma não encontrada.</p>
-        <Button className="mt-4" variante="secundario" onClick={() => router.push("/turmas")}>
-          Voltar para turmas
-        </Button>
-      </main>
-    );
   }
 
   return (
     <main className="mx-auto w-full max-w-4xl p-6">
-      <Button variante="secundario" onClick={() => router.push("/turmas")}>
-        ← Voltar
-      </Button>
-
-      <div className="mt-4 flex w-full items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{turma.nome}</h1>
-          <p className="text-gray-600">
-            {turma.serie} · {alunos.length} alunos
-          </p>
-        </div>
+      <div className="flex w-full items-center justify-between">
+        <h1 className="text-2xl font-bold">Minhas turmas</h1>
         <div className="flex gap-2">
-            <Button variante="secundario" onClick={() => router.push(`/registrar?turma=${id}`)}>
-                Registrar habilidade
-            </Button>
-            <Button onClick={abrirNovo}>Adicionar aluno</Button>
-            </div>
+          <Button
+            variante="secundario"
+            onClick={() => {
+              sair();
+              router.push("/");
+            }}
+          >
+            Sair
+          </Button>
+          <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
+        </div>
       </div>
 
       {formAberto && (
         <Card className="mt-4">
           <form onSubmit={salvar} className="flex flex-col gap-4">
             <Input
-              id="nome-aluno"
-              label={editandoId !== null ? "Editar nome do aluno" : "Nome do aluno"}
+              id="nome"
+              label="Nome da turma"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               erro={erroNome}
             />
+            <Input
+              id="serie"
+              label="Série"
+              value={serie}
+              onChange={(e) => setSerie(e.target.value)}
+              erro={erroSerie}
+            />
             <div className="flex gap-2">
-              <Button type="submit">Salvar</Button>
+              <Button type="submit" carregando={salvando}>
+                Salvar turma
+              </Button>
               <Button type="button" variante="secundario" onClick={fecharForm}>
                 Cancelar
               </Button>
@@ -134,64 +106,44 @@ function ListaAlunos() {
         </Card>
       )}
 
-      {alunos.length === 0 && (
-        <p className="mt-6 text-gray-600">Nenhum aluno nesta turma ainda.</p>
+      {carregando && (
+        <p className="mt-6 text-gray-600">
+          Carregando turmas... a primeira vez pode levar até 1 minuto.
+        </p>
       )}
 
-      <div className="mt-6 flex flex-col gap-3">
-        {alunos.map((aluno) => {
-          const registros = registrosAtuais(todosRegistros.filter((r) => r.alunoId === aluno.id));
+      {!carregando && erro && (
+        <Card className="mt-6">
+          <p className="text-red-700">{erro}</p>
+          <Button className="mt-3" variante="secundario" onClick={recarregar}>
+            Tentar novamente
+          </Button>
+        </Card>
+      )}
+
+      {!carregando && !erro && turmas.length === 0 && (
+        <p className="mt-6 text-gray-600">Nenhuma turma ainda. Crie a primeira.</p>
+      )}
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {turmas.map((turma) => {
+          const qtd = alunos.filter((a) => a.turmaId === turma.id).length;
           return (
-            <Card key={aluno.id} onClick={() => router.push(`/aluno?id=${aluno.id}`)}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-semibold">{aluno.nome}</h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  {registros.length === 0 && (
-                    <span className="text-sm text-gray-500">Sem registros</span>
-                  )}
-                  {niveis.map((nivel) => {
-                    const qtd = registros.filter((r) => r.nivel === nivel).length;
-                    return qtd > 0 ? <Badge key={nivel} nivel={nivel} quantidade={qtd} /> : null;
-                  })}
-                  <Button
-                    variante="secundario"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      abrirEdicao(aluno);
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variante="perigo"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      remover(aluno);
-                    }}
-                  >
-                    Remover
-                  </Button>
-                </div>
-              </div>
+            <Card key={turma.id} onClick={() => router.push(`/turma?id=${turma.id}`)}>
+              <h2 className="text-lg font-semibold">{turma.nome}</h2>
+              <p className="text-gray-600">{turma.serie}</p>
+              <p className="mt-2 text-sm text-gray-500">{qtd} alunos</p>
             </Card>
           );
         })}
       </div>
 
       <Alerta
-        tipo="sucesso"
-        mensagem={mensagem}
+        tipo={alertaTipo}
+        mensagem={alertaMensagem}
         visivel={alertaVisivel}
         onFechar={() => setAlertaVisivel(false)}
       />
     </main>
-  );
-}
-
-export default function TurmaPage() {
-  return (
-    <Suspense fallback={<p className="p-6">Carregando...</p>}>
-      <ListaAlunos />
-    </Suspense>
   );
 }
