@@ -17,6 +17,12 @@ import Card from "../../../components/ui/caixinha";
 import Badge from "../../../components/ui/badge";
 import Alerta, { TipoAlerta } from "../../../components/ui/alerta";
 import EstadoCarga from "../../../components/EstadoCarga";
+import SeletorHabilidade, {
+  escolhaVazia,
+  EscolhaHabilidade,
+  resolverHabilidadeId,
+  validarEscolha,
+} from "../../../components/SeletorHabilidade";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 
@@ -45,7 +51,7 @@ function DetalheAluno() {
   // formulário (serve para "atualizar" e para "corrigir")
   const [formAberto, setFormAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<number | null>(null);
-  const [habilidadeId, setHabilidadeId] = useState("");
+  const [escolha, setEscolha] = useState<EscolhaHabilidade>(escolhaVazia);
   const [nivel, setNivel] = useState<Nivel | "">("");
   const [observacao, setObservacao] = useState("");
   const [erroForm, setErroForm] = useState("");
@@ -101,7 +107,7 @@ function DetalheAluno() {
 
   function abrirNovo(habId?: number) {
     setEditandoId(null);
-    setHabilidadeId(habId ? String(habId) : "");
+    setEscolha(habId ? { ...escolhaVazia, id: String(habId) } : escolhaVazia);
     setNivel("");
     setObservacao("");
     setErroForm("");
@@ -110,7 +116,7 @@ function DetalheAluno() {
 
   function abrirEdicao(r: Registro) {
     setEditandoId(r.id);
-    setHabilidadeId(String(r.habilidadeId));
+    setEscolha({ ...escolhaVazia, id: String(r.habilidadeId) });
     setNivel(r.nivel);
     setObservacao(r.observacao);
     setErroForm("");
@@ -124,15 +130,18 @@ function DetalheAluno() {
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!habilidadeId || !nivel) {
-      setErroForm("Escolha a habilidade e o nível.");
+    const erroEscolha = validarEscolha(escolha);
+    if (erroEscolha || !nivel) {
+      setErroForm(erroEscolha || "Escolha o nível.");
       return;
     }
+    setErroForm("");
     setSalvando(true);
     try {
+      const habilidadeId = await resolverHabilidadeId(escolha, habilidadesCtx.adicionarHabilidade);
       if (editandoId !== null) {
         await editarRegistro(editandoId, {
-          habilidadeId: Number(habilidadeId),
+          habilidadeId,
           nivel,
           observacao: observacao.trim(),
         });
@@ -141,7 +150,7 @@ function DetalheAluno() {
         await adicionarRegistros([
           {
             alunoId: id,
-            habilidadeId: Number(habilidadeId),
+            habilidadeId,
             nivel,
             observacao: observacao.trim(),
             data: hoje(),
@@ -207,24 +216,12 @@ function DetalheAluno() {
       {formAberto && (
         <Card className="mt-3">
           <form onSubmit={salvar} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="hab" className="text-sm font-medium text-gray-700">
-                Habilidade
-              </label>
-              <select
-                id="hab"
-                className={campo}
-                value={habilidadeId}
-                onChange={(e) => setHabilidadeId(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {habilidades.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.descricao} ({h.componente})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SeletorHabilidade
+              habilidades={habilidades}
+              escolha={escolha}
+              onChange={setEscolha}
+              idBase="hab"
+            />
             <div className="flex flex-col gap-1">
               <label htmlFor="niv" className="text-sm font-medium text-gray-700">
                 Nível

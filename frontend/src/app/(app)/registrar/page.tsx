@@ -13,6 +13,12 @@ import Button from "../../../components/ui/button";
 import Card from "../../../components/ui/caixinha";
 import Alerta, { TipoAlerta } from "../../../components/ui/alerta";
 import EstadoCarga from "../../../components/EstadoCarga";
+import SeletorHabilidade, {
+  escolhaVazia,
+  EscolhaHabilidade,
+  resolverHabilidadeId,
+  validarEscolha,
+} from "../../../components/SeletorHabilidade";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 
@@ -36,7 +42,7 @@ function RegistrarTurma() {
   const turma = turmasCtx.turmas.find((t) => t.id === turmaId);
   const alunos = alunosCtx.alunos.filter((a) => a.turmaId === turmaId);
 
-  const [habilidadeId, setHabilidadeId] = useState("");
+  const [escolha, setEscolha] = useState<EscolhaHabilidade>(escolhaVazia);
   const [data, setData] = useState(hoje());
   const [linhas, setLinhas] = useState<Record<number, Linha>>({});
   const [erro, setErro] = useState("");
@@ -75,27 +81,29 @@ function RegistrarTurma() {
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!habilidadeId) {
-      setErro("Escolha a habilidade.");
+    const erroEscolha = validarEscolha(escolha);
+    if (erroEscolha) {
+      setErro(erroEscolha);
       return;
     }
-    const novos = alunos
-      .filter((a) => linhas[a.id]?.nivel)
-      .map((a) => ({
-        alunoId: a.id,
-        habilidadeId: Number(habilidadeId),
-        observacao: linhas[a.id].observacao.trim(),
-        nivel: linhas[a.id].nivel as Nivel,
-        data,
-      }));
-    if (novos.length === 0) {
+    const avaliados = alunos.filter((a) => linhas[a.id]?.nivel);
+    if (avaliados.length === 0) {
       setErro("Escolha o nível de pelo menos um aluno.");
       return;
     }
     setErro("");
     setSalvando(true);
     try {
-      await registrosCtx.adicionarRegistros(novos);
+      const habilidadeId = await resolverHabilidadeId(escolha, habilidadesCtx.adicionarHabilidade);
+      await registrosCtx.adicionarRegistros(
+        avaliados.map((a) => ({
+          alunoId: a.id,
+          habilidadeId,
+          observacao: linhas[a.id].observacao.trim(),
+          nivel: linhas[a.id].nivel as Nivel,
+          data,
+        }))
+      );
       avisar("sucesso", "Registros salvos!");
       setTimeout(() => router.push(`/turma?id=${turmaId}`), 1200);
     } catch (err) {
@@ -134,26 +142,14 @@ function RegistrarTurma() {
 
       <form onSubmit={salvar} className="mt-4 flex flex-col gap-4">
         <Card>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="habilidade" className="text-sm font-medium text-gray-700">
-                Habilidade
-              </label>
-              <select
-                id="habilidade"
-                className={campo}
-                value={habilidadeId}
-                onChange={(e) => setHabilidadeId(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {habilidadesCtx.habilidades.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.descricao} ({h.componente})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-4">
+            <SeletorHabilidade
+              habilidades={habilidadesCtx.habilidades}
+              escolha={escolha}
+              onChange={setEscolha}
+              idBase="habilidade"
+            />
+            <div className="flex flex-col gap-1 sm:max-w-xs">
               <label htmlFor="data" className="text-sm font-medium text-gray-700">
                 Data
               </label>
