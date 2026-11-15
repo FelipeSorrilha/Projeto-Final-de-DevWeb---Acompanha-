@@ -4,15 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTurmas } from "../../../context/TurmasContext";
 import { useAlunos } from "../../../context/AlunosContext";
+import { sair } from "../../../services/auth";
+import { mensagemDeErro } from "../../../services/api";
 import Button from "../../../components/ui/button";
 import Input from "../../../components/ui/input";
 import Card from "../../../components/ui/caixinha";
-import Alerta from "../../../components/ui/alerta";
-import { sair } from "../../../services/auth";
+import Alerta, { TipoAlerta } from "../../../components/ui/alerta";
 
 export default function Turmas() {
   const router = useRouter();
-  const { turmas, adicionarTurma } = useTurmas();
+  const { turmas, carregando, erro, recarregar, adicionarTurma } = useTurmas();
   const { alunos } = useAlunos();
 
   const [formAberto, setFormAberto] = useState(false);
@@ -20,7 +21,17 @@ export default function Turmas() {
   const [serie, setSerie] = useState("");
   const [erroNome, setErroNome] = useState("");
   const [erroSerie, setErroSerie] = useState("");
-  const [sucesso, setSucesso] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  const [alertaVisivel, setAlertaVisivel] = useState(false);
+  const [alertaTipo, setAlertaTipo] = useState<TipoAlerta>("sucesso");
+  const [alertaMensagem, setAlertaMensagem] = useState("");
+
+  function avisar(tipo: TipoAlerta, mensagem: string) {
+    setAlertaTipo(tipo);
+    setAlertaMensagem(mensagem);
+    setAlertaVisivel(true);
+  }
 
   function fecharForm() {
     setFormAberto(false);
@@ -30,30 +41,40 @@ export default function Turmas() {
     setErroSerie("");
   }
 
-  function salvar(e: React.FormEvent) {
+  async function salvar(e: React.FormEvent) {
     e.preventDefault();
     setErroNome(nome.trim() ? "" : "Informe o nome da turma");
     setErroSerie(serie.trim() ? "" : "Informe a série");
     if (!nome.trim() || !serie.trim()) return;
 
-    adicionarTurma(nome.trim(), serie.trim());
-    fecharForm();
-    setSucesso(true);
+    setSalvando(true);
+    try {
+      await adicionarTurma(nome.trim(), serie.trim());
+      fecharForm();
+      avisar("sucesso", "Turma criada com sucesso!");
+    } catch (e) {
+      avisar("erro", mensagemDeErro(e));
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
     <main className="mx-auto w-full max-w-4xl p-6">
       <div className="flex w-full items-center justify-between">
         <h1 className="text-2xl font-bold">Minhas turmas</h1>
-        <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
-      </div>
-
-
-      <div className="flex gap-2">
-        <Button variante="secundario" onClick={() => { sair(); router.push("/"); }}>
-          Sair
-        </Button>
-        <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
+        <div className="flex gap-2">
+          <Button
+            variante="secundario"
+            onClick={() => {
+              sair();
+              router.push("/");
+            }}
+          >
+            Sair
+          </Button>
+          <Button onClick={() => setFormAberto(true)}>Nova turma</Button>
+        </div>
       </div>
 
       {formAberto && (
@@ -74,13 +95,34 @@ export default function Turmas() {
               erro={erroSerie}
             />
             <div className="flex gap-2">
-              <Button type="submit">Salvar turma</Button>
+              <Button type="submit" carregando={salvando}>
+                Salvar turma
+              </Button>
               <Button type="button" variante="secundario" onClick={fecharForm}>
                 Cancelar
               </Button>
             </div>
           </form>
         </Card>
+      )}
+
+      {carregando && (
+        <p className="mt-6 text-gray-600">
+          Carregando turmas... a primeira vez pode levar até 1 minuto.
+        </p>
+      )}
+
+      {!carregando && erro && (
+        <Card className="mt-6">
+          <p className="text-red-700">{erro}</p>
+          <Button className="mt-3" variante="secundario" onClick={recarregar}>
+            Tentar novamente
+          </Button>
+        </Card>
+      )}
+
+      {!carregando && !erro && turmas.length === 0 && (
+        <p className="mt-6 text-gray-600">Nenhuma turma ainda. Crie a primeira.</p>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -97,10 +139,10 @@ export default function Turmas() {
       </div>
 
       <Alerta
-        tipo="sucesso"
-        mensagem="Turma criada com sucesso!"
-        visivel={sucesso}
-        onFechar={() => setSucesso(false)}
+        tipo={alertaTipo}
+        mensagem={alertaMensagem}
+        visivel={alertaVisivel}
+        onFechar={() => setAlertaVisivel(false)}
       />
     </main>
   );
