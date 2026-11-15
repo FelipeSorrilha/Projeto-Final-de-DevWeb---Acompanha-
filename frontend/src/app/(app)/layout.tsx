@@ -1,33 +1,27 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
+"use client";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { ReactNode } from "react";
+import { useProtegido } from "../../hooks/useProtegido";
+import { TurmasProvider } from "../../context/TurmasContext";
+import { AlunosProvider } from "../../context/AlunosContext";
+import { RegistrosProvider } from "../../context/RegistrosContext";
+import { HabilidadesProvider } from "../../context/HabilidadesContext";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export default function AreaLogada({ children }: { children: ReactNode }) {
+  const autorizado = useProtegido();
 
-export const metadata: Metadata = {
-  title: "Acompanha+",
-  description: "Acompanhe o que cada aluno aprendeu e precisa retomar.",
-};
+  // sem token: o hook já redirecionou para o login
+  if (!autorizado) {
+    return <p className="p-6 text-gray-600">Carregando...</p>;
+  }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body>{children}</body>
-    </html>
+    <TurmasProvider>
+      <AlunosProvider>
+        <RegistrosProvider>
+          <HabilidadesProvider>{children}</HabilidadesProvider>
+        </RegistrosProvider>
+      </AlunosProvider>
+    </TurmasProvider>
   );
 }
