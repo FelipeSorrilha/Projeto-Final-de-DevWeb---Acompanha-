@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTurmas } from "../../../context/TurmasContext";
 import { useAlunos } from "../../../context/AlunosContext";
 import { useRegistros } from "../../../context/RegistrosContext";
-import { habilidadesMock } from "../../../data/mock";
+import { useHabilidades } from "../../../context/HabilidadesContext";
+import { mensagemDeErro } from "../../../services/api";
+import { hoje } from "../../../utils/datas";
 import { Nivel } from "../../../types";
 import Button from "../../../components/ui/button";
 import Card from "../../../components/ui/caixinha";
-import Alerta from "../../../components/ui/alerta";
+import Alerta, { TipoAlerta } from "../../../components/ui/alerta";
+import EstadoCarga from "../../../components/EstadoCarga";
 
 const niveis: Nivel[] = ["precisa retomar", "em desenvolvimento", "dominado"];
 
@@ -24,29 +27,53 @@ interface Linha {
 function RegistrarTurma() {
   const router = useRouter();
   const params = useSearchParams();
-  const { turmas } = useTurmas();
-  const { alunos: todosAlunos } = useAlunos();
-  const { adicionarRegistros } = useRegistros();
+  const turmasCtx = useTurmas();
+  const alunosCtx = useAlunos();
+  const registrosCtx = useRegistros();
+  const habilidadesCtx = useHabilidades();
 
   const turmaId = Number(params.get("turma"));
-  const turma = turmas.find((t) => t.id === turmaId);
-  const alunos = todosAlunos.filter((a) => a.turmaId === turmaId);
+  const turma = turmasCtx.turmas.find((t) => t.id === turmaId);
+  const alunos = alunosCtx.alunos.filter((a) => a.turmaId === turmaId);
 
   const [habilidadeId, setHabilidadeId] = useState("");
-  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
+  const [data, setData] = useState(hoje());
   const [linhas, setLinhas] = useState<Record<number, Linha>>({});
   const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
-function atualizar(alunoId: number, mudanca: Partial<Linha>) {
-  setLinhas((atual) => {
-    const anterior: Linha = atual[alunoId] ?? { nivel: "", observacao: "" };
-    return { ...atual, [alunoId]: { ...anterior, ...mudanca } };
-  });
-}
+  const [alertaVisivel, setAlertaVisivel] = useState(false);
+  const [alertaTipo, setAlertaTipo] = useState<TipoAlerta>("sucesso");
+  const [alertaMensagem, setAlertaMensagem] = useState("");
 
-  function salvar(e: React.FormEvent) {
+  const carregando =
+    turmasCtx.carregando ||
+    alunosCtx.carregando ||
+    registrosCtx.carregando ||
+    habilidadesCtx.carregando;
+  const erroCarga = turmasCtx.erro || alunosCtx.erro || registrosCtx.erro || habilidadesCtx.erro;
+
+  function recarregarTudo() {
+    turmasCtx.recarregar();
+    alunosCtx.recarregar();
+    registrosCtx.recarregar();
+    habilidadesCtx.recarregar();
+  }
+
+  function avisar(tipo: TipoAlerta, mensagem: string) {
+    setAlertaTipo(tipo);
+    setAlertaMensagem(mensagem);
+    setAlertaVisivel(true);
+  }
+
+  function atualizar(alunoId: number, mudanca: Partial<Linha>) {
+    setLinhas((atual) => {
+      const anterior: Linha = atual[alunoId] ?? { nivel: "", observacao: "" };
+      return { ...atual, [alunoId]: { ...anterior, ...mudanca } };
+    });
+  }
+
+  async function salvar(e: React.FormEvent) {
     e.preventDefault();
     if (!habilidadeId) {
       setErro("Escolha a habilidade.");
@@ -67,9 +94,22 @@ function atualizar(alunoId: number, mudanca: Partial<Linha>) {
     }
     setErro("");
     setSalvando(true);
-    adicionarRegistros(novos);
-    setSucesso(true);
-    setTimeout(() => router.push(`/turma?id=${turmaId}`), 1200);
+    try {
+      await registrosCtx.adicionarRegistros(novos);
+      avisar("sucesso", "Registros salvos!");
+      setTimeout(() => router.push(`/turma?id=${turmaId}`), 1200);
+    } catch (err) {
+      avisar("erro", mensagemDeErro(err));
+      setSalvando(false);
+    }
+  }
+
+  if (carregando || erroCarga) {
+    return (
+      <main className="mx-auto w-full max-w-4xl p-6">
+        <EstadoCarga carregando={carregando} erro={erroCarga} onTentarNovamente={recarregarTudo} />
+      </main>
+    );
   }
 
   if (!turma) {
@@ -106,7 +146,7 @@ function atualizar(alunoId: number, mudanca: Partial<Linha>) {
                 onChange={(e) => setHabilidadeId(e.target.value)}
               >
                 <option value="">Selecione...</option>
-                {habilidadesMock.map((h) => (
+                {habilidadesCtx.habilidades.map((h) => (
                   <option key={h.id} value={h.id}>
                     {h.descricao} ({h.componente})
                   </option>
@@ -171,10 +211,10 @@ function atualizar(alunoId: number, mudanca: Partial<Linha>) {
       </form>
 
       <Alerta
-        tipo="sucesso"
-        mensagem="Registros salvos!"
-        visivel={sucesso}
-        onFechar={() => setSucesso(false)}
+        tipo={alertaTipo}
+        mensagem={alertaMensagem}
+        visivel={alertaVisivel}
+        onFechar={() => setAlertaVisivel(false)}
       />
     </main>
   );
